@@ -1,5 +1,4 @@
 plugins {
-    id "com.jfrog.bintray" version "1.1"
     id "java"
     id "checkstyle"
     id "antlr"
@@ -61,18 +60,19 @@ embulkPlugin {
     type = "calc"
 }
 
-publishing {
-    publications {
-        embulkPluginMaven(MavenPublication) {  // Publish it with "publishEmbulkPluginMavenPublicationToMavenRepository".
-            from components.java  // Must be "components.java". The dependency modification works only for it.
-        }
-    }
-    repositories {
-        maven {
-            url = "${project.buildDir}/mavenPublishLocal"
-        }
-    }
-}
+// TODO: enable when the pure-java plugin publish.
+//publishing {
+//    publications {
+//        embulkPluginMaven(MavenPublication) {  // Publish it with "publishEmbulkPluginMavenPublicationToMavenRepository".
+//            from components.java  // Must be "components.java". The dependency modification works only for it.
+//        }
+//    }
+//    repositories {
+//        maven {
+//            url = "${project.buildDir}/mavenPublishLocal"
+//        }
+//    }
+//}
 
 gem {
     from("LICENSE.txt")  // Optional -- if you need other files in the gem.
