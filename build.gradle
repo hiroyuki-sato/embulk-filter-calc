@@ -1,42 +1,36 @@
 plugins {
-    id "com.jfrog.bintray" version "1.1"
-    id "com.github.jruby-gradle.base" version "0.1.5"
     id "java"
     id "checkstyle"
     id "antlr"
-    id "findbugs"
+    id "maven-publish"
+    id "org.embulk.embulk-plugins" version "0.4.2"
 }
-import com.github.jrubygradle.JRubyExec
 repositories {
     mavenCentral()
     jcenter()
 }
-configurations {
-    provided
-}
 
-version = "0.1.0"
+group = "com.github.hiroyuki_sato"
+version = "0.1.1-SNAPSHOT"
+description = "Caculator filter plugin for Embulk"
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 dependencies {
-    compile  "org.embulk:embulk-core:0.8.12"
-    provided "org.embulk:embulk-core:0.8.12"
+    compileOnly "org.embulk:embulk-core:0.9.23"
     testCompile "junit:junit:4.+"
-    antlr "org.antlr:antlr4:4.5.3"
+    antlr "org.antlr:antlr4:4.9.1"
 
     testCompile "junit:junit:4.+"
-    testCompile "org.embulk:embulk-core:0.8.12:tests"
-    testCompile "org.embulk:embulk-standards:0.8.12"
-}
+    testCompile  "org.embulk:embulk-core:0.9.23:tests"
+    testCompile  "org.embulk:embulk-standards:0.9.23"
 
-task classpath(type: Copy, dependsOn: ["jar"]) {
-    doFirst { file("classpath").deleteDir() }
-    from (configurations.runtime - configurations.provided + files(jar.archivePath))
-    into "classpath"
+    // TODO: Remove them.
+    // These `testCompile` are a tentative workaround. It will be covered in Embulk core's testing mechanism.
+    testCompile "org.embulk:embulk-deps-buffer:0.9.23"
+    testCompile "org.embulk:embulk-deps-config:0.9.23"
 }
-clean { delete "classpath" }
 
 checkstyle {
     configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
@@ -55,50 +49,44 @@ task checkstyle(type: Checkstyle) {
     source = sourceSets.main.allJava + sourceSets.test.allJava
 }
 
-task gem(type: JRubyExec, dependsOn: ["gemspec", "classpath"]) {
-    jrubyArgs "-rrubygems/gem_runner", "-eGem::GemRunner.new.run(ARGV)", "build"
-    script "${project.name}.gemspec"
-    doLast { ant.move(file: "${project.name}-${project.version}.gem", todir: "pkg") }
-}
-
-task gemPush(type: JRubyExec, dependsOn: ["gem"]) {
-    jrubyArgs "-rrubygems/gem_runner", "-eGem::GemRunner.new.run(ARGV)", "push"
-    script "pkg/${project.name}-${project.version}.gem"
-}
-
-task "package"(dependsOn: ["gemspec", "classpath"]) << {
-    println "> Build succeeded."
-    println "> You can run embulk with '-L ${file(".").absolutePath}' argument."
-}
 generateGrammarSource {
 //    maxHeapSize = "64m"
     arguments += ["-visitor", "-long-messages", "-no-listener"]
 }
 
-task gemspec {
-    ext.gemspecFile = file("${project.name}.gemspec")
-    inputs.file "build.gradle"
-    outputs.file gemspecFile
-    doLast { gemspecFile.write($/
-Gem::Specification.new do |spec|
-  spec.name          = "${project.name}"
-  spec.version       = "${project.version}"
-  spec.authors       = ["Hiroyuki Sato"]
-  spec.summary       = %[Caculator filter plugin for Embulk]
-  spec.description   = %[Calc]
-  spec.email         = ["hiroysato@gmail.com"]
-  spec.licenses      = ["MIT"]
-  spec.homepage      = "https://github.com/hiroyuki-sato/embulk-filter-calc"
-
-  spec.files         = `git ls-files`.split("\n") + Dir["classpath/*.jar"]
-  spec.test_files    = spec.files.grep(%r"^(test|spec)/")
-  spec.require_paths = ["lib"]
-
-  #spec.add_dependency 'YOUR_GEM_DEPENDENCY', ['~> YOUR_GEM_DEPENDENCY_VERSION']
-  spec.add_development_dependency 'bundler', ['~> 1.0']
-  spec.add_development_dependency 'rake', ['>= 10.0']
-end
-/$)
-    }
+embulkPlugin {
+    mainClass = "org.embulk.filter.calc.CalcFilterPlugin"
+    category = "filter"
+    type = "calc"
 }
-clean { delete "${project.name}.gemspec" }
+
+// TODO: enable when the pure-java plugin publish.
+//publishing {
+//    publications {
+//        embulkPluginMaven(MavenPublication) {  // Publish it with "publishEmbulkPluginMavenPublicationToMavenRepository".
+//            from components.java  // Must be "components.java". The dependency modification works only for it.
+//        }
+//    }
+//    repositories {
+//        maven {
+//            url = "${project.buildDir}/mavenPublishLocal"
+//        }
+//    }
+//}
+
+gem {
+    from("LICENSE.txt")  // Optional -- if you need other files in the gem.
+    authors = [ "Hiroyuki Sato" ]
+    email = [ "hiroysato@gmail.com" ]
+    // "description" of the gem is copied from "description" of your Gradle project.
+    summary = "Caculator filter plugin for Embulk"
+    homepage = "https://github.com/hiroyuki-sato/embulk-filter-calc"
+    licenses = [ "MIT" ]
+    // metadata = [ ]
+}
+
+gemPush {
+    host = "https://rubygems.org"
+}
+
+
