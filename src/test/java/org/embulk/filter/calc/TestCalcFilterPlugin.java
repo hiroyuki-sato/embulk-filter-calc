@@ -10,8 +10,11 @@ import org.embulk.config.TaskSource;
 import org.embulk.filter.calc.CalcFilterPlugin.PluginTask;
 import org.embulk.spi.Column;
 import org.embulk.spi.Exec;
+import org.embulk.spi.ExecInternal;
 import org.embulk.spi.FilterPlugin;
 import org.embulk.spi.Schema;
+import org.embulk.util.config.ConfigMapper;
+import org.embulk.util.config.ConfigMapperFactory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,6 +35,7 @@ public class TestCalcFilterPlugin
     public EmbulkTestRuntime runtime = new EmbulkTestRuntime();
 
     private CalcFilterPlugin plugin;
+    private static final ConfigMapperFactory CONFIG_MAPPER_FACTORY = ConfigMapperFactory.builder().addDefaultModules().build();
 
 
     private Schema schema(Column... columns)
@@ -47,14 +51,15 @@ public class TestCalcFilterPlugin
         }
         String yamlString = builder.toString();
 
-        ConfigLoader loader = new ConfigLoader(Exec.getModelManager());
+        ConfigLoader loader = new ConfigLoader(ExecInternal.getModelManager());
         return loader.fromYamlString(yamlString);
     }
 
     private PluginTask taskFromYamlString(String... lines)
     {
         ConfigSource config = configFromYamlString(lines);
-        return config.loadConfig(PluginTask.class);
+        ConfigMapper configMapper = CONFIG_MAPPER_FACTORY.createConfigMapper();
+        return configMapper.map(config, PluginTask.class);
     }
 
     private void transaction(ConfigSource config, Schema inputSchema)

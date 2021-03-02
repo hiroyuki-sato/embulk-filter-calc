@@ -35,6 +35,8 @@ dependencies {
     antlr "org.antlr:antlr4:4.9.1"
 
     testCompile "junit:junit:4.+"
+    testCompile "org.embulk:embulk-core:0.10.26"
+    testCompile "org.embulk:embulk-core:0.10.26:tests"
     testCompile "org.embulk:embulk-spi:0.10.26"
     testCompile "org.embulk:embulk-api:0.10.26"
     testCompile  "org.embulk:embulk-standards:0.10.26"
