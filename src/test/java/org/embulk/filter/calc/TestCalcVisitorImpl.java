@@ -66,8 +66,8 @@ public class TestCalcVisitorImpl
     {
         TestPageBuilderReader.MockPageOutput output = new TestPageBuilderReader.MockPageOutput();
         Schema outputSchema = CalcFilterPlugin.buildOutputSchema(task, inputSchema);
-        PageBuilder pageBuilder = new PageBuilder(runtime.getBufferAllocator(), outputSchema, output);
-        PageReader pageReader = new PageReader(inputSchema);
+        PageBuilder pageBuilder = Exec.getPageBuilder(runtime.getBufferAllocator(), outputSchema, output);
+        PageReader pageReader = Exec.getPageReader(inputSchema);
         CalcVisitorImpl visitor = new CalcVisitorImpl(task, inputSchema, outputSchema, pageReader, pageBuilder);
 
         List<Page> pages = PageTestUtils.buildPage(runtime.getBufferAllocator(), inputSchema, objects);

@@ -105,8 +105,8 @@ public class CalcFilterPlugin
         final PluginTask task = taskMapper.map(taskSource, PluginTask.class);
 
         return new PageOutput() {
-            private PageReader pageReader = new PageReader(inputSchema);
-            private PageBuilder pageBuilder = new PageBuilder(Exec.getBufferAllocator(), outputSchema, output);
+            private PageReader pageReader = Exec.getPageReader(inputSchema);
+            private PageBuilder pageBuilder = Exec.getPageBuilder(Exec.getBufferAllocator(), outputSchema, output);
             private CalcVisitorImpl visitor = new CalcVisitorImpl(task, inputSchema, outputSchema, pageReader, pageBuilder);
 
             @Override
