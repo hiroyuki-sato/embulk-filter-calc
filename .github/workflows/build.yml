@@ -9,6 +9,8 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+    - name: write lock gradle dependencies
+      run: ././gradlew dependencies --write-locks
     - name: Build with testing
       run: ./gradlew check
 #      run: ./gradlew --stacktrace --info test
