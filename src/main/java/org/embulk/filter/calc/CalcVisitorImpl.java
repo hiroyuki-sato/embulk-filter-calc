@@ -135,7 +135,7 @@ public class CalcVisitorImpl
             pageBuilder.setNull(outputColumn);
         }
         else {
-            pageBuilder.setTimestamp(outputColumn, pageReader.getTimestamp(inputColumn));
+            pageBuilder.setTimestamp(outputColumn, pageReader.getTimestampInstant(inputColumn));
         }
     }
 }
