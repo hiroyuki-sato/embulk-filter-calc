@@ -14,7 +14,7 @@ public class CalcVisitorImpl
         implements ColumnVisitor
 {
 
-    private static final Logger logger = Exec.getLogger(CalcFilterPlugin.class);
+    private static final Logger logger = org.slf4j.LoggerFactory.getLogger(CalcFilterPlugin.class);
     private final CalcFilterPlugin.PluginTask task;
     private final Schema inputSchema;
     private final Schema outputSchema;
