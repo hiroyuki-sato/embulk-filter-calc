@@ -63,7 +63,7 @@ public class CalcFilterPlugin
             calc.validateFormula();
         }
 
-        control.run(task.dump(), outputSchema);
+        control.run(task.toTaskSource(), outputSchema);
     }
 
     static Schema buildOutputSchema(PluginTask task, Schema inputSchema) {
