@@ -5,6 +5,7 @@ import org.embulk.config.ConfigLoader;
 import org.embulk.config.ConfigSource;
 import org.embulk.filter.calc.CalcFilterPlugin.PluginTask;
 import org.embulk.spi.Exec;
+import org.embulk.spi.ExecInternal;
 import org.embulk.spi.Page;
 import org.embulk.spi.PageBuilder;
 import org.embulk.spi.PageReader;
@@ -13,6 +14,8 @@ import org.embulk.spi.Schema;
 import org.embulk.spi.TestPageBuilderReader;
 import org.embulk.spi.time.Timestamp;
 import org.embulk.spi.util.Pages;
+import org.embulk.util.config.ConfigMapper;
+import org.embulk.util.config.ConfigMapperFactory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,6 +46,7 @@ public class TestCalcVisitorImpl
     {
         return runtime.getExec().newConfigSource();
     }
+    private static final ConfigMapperFactory CONFIG_MAPPER_FACTORY = ConfigMapperFactory.builder().addDefaultModules().build();
 
     private PluginTask taskFromYamlString(String... lines)
     {
@@ -52,17 +56,18 @@ public class TestCalcVisitorImpl
         }
         String yamlString = builder.toString();
 
-        ConfigLoader loader = new ConfigLoader(Exec.getModelManager());
+        ConfigLoader loader = new ConfigLoader(ExecInternal.getModelManager());
         ConfigSource config = loader.fromYamlString(yamlString);
-        return config.loadConfig(PluginTask.class);
+        ConfigMapper configMapper = CONFIG_MAPPER_FACTORY.createConfigMapper();
+        return configMapper.map(config, PluginTask.class);
     }
 
     private List<Object[]> filter(PluginTask task, Schema inputSchema, Object ... objects)
     {
         TestPageBuilderReader.MockPageOutput output = new TestPageBuilderReader.MockPageOutput();
         Schema outputSchema = CalcFilterPlugin.buildOutputSchema(task, inputSchema);
-        PageBuilder pageBuilder = new PageBuilder(runtime.getBufferAllocator(), outputSchema, output);
-        PageReader pageReader = new PageReader(inputSchema);
+        PageBuilder pageBuilder = Exec.getPageBuilder(runtime.getBufferAllocator(), outputSchema, output);
+        PageReader pageReader = Exec.getPageReader(inputSchema);
         CalcVisitorImpl visitor = new CalcVisitorImpl(task, inputSchema, outputSchema, pageReader, pageBuilder);
 
         List<Page> pages = PageTestUtils.buildPage(runtime.getBufferAllocator(), inputSchema, objects);
