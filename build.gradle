@@ -3,6 +3,7 @@ plugins {
     id "checkstyle"
     id "antlr"
     id "maven-publish"
+    id "signing"
     id "org.embulk.embulk-plugins" version "0.4.2"
 }
 repositories {
@@ -75,19 +76,84 @@ embulkPlugin {
     type = "calc"
 }
 
-// TODO: enable when the pure-java plugin publish.
-//publishing {
-//    publications {
-//        embulkPluginMaven(MavenPublication) {  // Publish it with "publishEmbulkPluginMavenPublicationToMavenRepository".
-//            from components.java  // Must be "components.java". The dependency modification works only for it.
-//        }
-//    }
-//    repositories {
-//        maven {
-//            url = "${project.buildDir}/mavenPublishLocal"
-//        }
-//    }
-//}
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+jar {
+    from rootProject.file("LICENSE")
+}
+
+sourcesJar {
+    from rootProject.file("LICENSE")
+}
+
+javadocJar {
+    from rootProject.file("LICENSE")
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = project.group
+            artifactId = project.name
+
+            from components.java  // Must be "components.java". The dependency modification works only for it.
+            // javadocJar and sourcesJar are added by java.withJavadocJar() and java.withSourcesJar() above.
+            // See: https://docs.gradle.org/current/javadoc/org/gradle/api/plugins/JavaPluginExtension.html
+
+            pom {  // https://central.sonatype.org/pages/requirements.html
+                packaging "jar"
+
+                name = project.name
+                description = project.description
+                url = "https://www.embulk.org/"
+
+                licenses {
+                    license {
+                        // http://central.sonatype.org/pages/requirements.html#license-information
+                        name = "MIT License"
+                        url = "http://www.opensource.org/licenses/mit-license.php"
+                    }
+                }
+
+                developers {
+                    developer {
+                        name = "Hiroyuki Sato"
+                        email = "hiroysato@gmail.com"
+                    }
+                }
+
+                scm {
+                    connection = "scm:git:git://github.com/hiroyuki-sato/embulk-filter-calc.git"
+                    developerConnection = "scm:git:git@github.com:hiroyuki-sato/embulk-filter-calc.git"
+                    url = "https://github.com/hiroyuki-sato/embulk-filter-calc"
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {  // publishMavenPublicationToMavenCentralRepository
+            name = "mavenCentral"
+            if (project.version.endsWith("-SNAPSHOT")) {
+                url "https://oss.sonatype.org/content/repositories/snapshots"
+            } else {
+                url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            }
+
+            credentials {
+                username = project.hasProperty("ossrhUsername") ? ossrhUsername : ""
+                password = project.hasProperty("ossrhPassword") ? ossrhPassword : ""
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.maven
+}
 
 gem {
     from("LICENSE.txt")  // Optional -- if you need other files in the gem.
