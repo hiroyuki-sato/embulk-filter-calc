@@ -108,7 +108,7 @@ publishing {
 
                 name = project.name
                 description = project.description
-                url = "https://www.embulk.org/"
+                url = "https://github.com/hiroyuki-sato/embulk-filter-calc"
 
                 licenses {
                     license {
