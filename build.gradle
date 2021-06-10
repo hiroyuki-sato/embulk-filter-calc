@@ -8,7 +8,6 @@ plugins {
 }
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 group = "io.github.hiroyuki-sato"
