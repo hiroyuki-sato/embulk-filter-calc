@@ -4,7 +4,7 @@ plugins {
     id "antlr"
     id "maven-publish"
     id "signing"
-    id "org.embulk.embulk-plugins" version "0.4.2"
+    id "org.embulk.embulk-plugins" version "0.5.5"
 }
 repositories {
     mavenCentral()
@@ -14,14 +14,12 @@ group = "io.github.hiroyuki-sato"
 version = "0.2.0"
 description = "Caculator filter plugin for Embulk"
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
 
 dependencies {
-    compileOnly "org.embulk:embulk-spi:0.10.31"
-    compileOnly "org.embulk:embulk-api:0.10.31"
+    compileOnly "org.embulk:embulk-spi:0.11"
+    //compileOnly "org.embulk:embulk-api:0.11.0"
 
-    compile("org.embulk:embulk-util-config:0.2.1") {
+    implementation("org.embulk:embulk-util-config:0.3.4") {
         // They conflict with embulk-core. They are once excluded here,
         // and added explicitly with versions exactly the same with embulk-core:0.10.19.
         exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
@@ -33,30 +31,38 @@ dependencies {
 
     // They are once excluded from transitive dependencies of other dependencies,
     // and added explicitly with versions exactly the same with embulk-core:0.10.19.
-    compile "com.fasterxml.jackson.core:jackson-annotations:2.6.7"
-    compile "com.fasterxml.jackson.core:jackson-core:2.6.7"
-    compile "com.fasterxml.jackson.core:jackson-databind:2.6.7"
-    compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.6.7"
-    compile "javax.validation:validation-api:1.1.0.Final"
-    //compile "joda-time:joda-time:2.9.2"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:2.6.7"
+    implementation "com.fasterxml.jackson.core:jackson-core:2.6.7"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.6.7.5"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.6.7"
+    implementation "javax.validation:validation-api:1.1.0.Final"
+    //implementation "joda-time:joda-time:2.9.2"
 
-    antlr "org.antlr:antlr4:4.9.1"
+    antlr "org.antlr:antlr4:4.9.3"
 
-    testCompile "junit:junit:4.13.2"
-    testCompile "org.embulk:embulk-core:0.10.31"
-    testCompile "org.embulk:embulk-core:0.10.31:tests"
-    testCompile "org.embulk:embulk-spi:0.10.31"
-    testCompile "org.embulk:embulk-api:0.10.31"
-    testCompile  "org.embulk:embulk-standards:0.10.31"
+    testImplementation "junit:junit:4.13.2"
+    testImplementation "org.embulk:embulk-core:0.11.0"
+    testImplementation "org.embulk:embulk-junit4:0.11.0"
+    testImplementation "org.embulk:embulk-spi:0.11"
+    //testImplementation "org.embulk:embulk-api:0.11.0"
+    //testImplementation  "org.embulk:embulk-standards:0.10.42"
 
     // TODO: Remove them.
-    // These `testCompile` are a tentative workaround. It will be covered in Embulk core's testing mechanism.
-    testCompile "org.embulk:embulk-deps:0.10.31"
+    // These `testImplementation` are a tentative workaround. It will be covered in Embulk core's testing mechanism.
+    testImplementation "org.embulk:embulk-deps:0.11.0"
+    testImplementation "com.google.guava:guava:18.0"
 }
+
+// It should not publish a `.module` file in Maven Central.
+// https://docs.gradle.org/current/userguide/publishing_gradle_module_metadata.html#sub:disabling-gmm-publication
+tasks.withType(GenerateModuleMetadata) {
+    enabled = false
+}
+
 
 checkstyle {
     configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
-    toolVersion = '6.14.1'
+    toolVersion = '8.23'
 }
 checkstyleMain {
     configFile = file("${project.rootDir}/config/checkstyle/default.xml")
@@ -85,6 +91,10 @@ embulkPlugin {
 java {
     withJavadocJar()
     withSourcesJar()
+
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
 }
 
 jar {
@@ -121,6 +131,7 @@ publishing {
                         // http://central.sonatype.org/pages/requirements.html#license-information
                         name = "MIT License"
                         url = "http://www.opensource.org/licenses/mit-license.php"
+                        distribution = "repo"
                     }
                 }
 
@@ -158,8 +169,10 @@ publishing {
 }
 
 signing {
-    // https://docs.gradle.org/current/userguide/signing_plugin.html#sec:using_gpg_agent
-    useGpgCmd()
+    if (project.hasProperty("signingKey") && project.hasProperty("signingPassword")) {
+        logger.lifecycle("Signing with an in-memory key.")
+        useInMemoryPgpKeys(signingKey, signingPassword)
+    }
     sign publishing.publications.maven
 }
 
