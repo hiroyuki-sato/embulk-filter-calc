@@ -1,6 +1,5 @@
 package org.embulk.filter.calc;
 
-import org.embulk.EmbulkTestRuntime;
 import org.embulk.config.ConfigLoader;
 import org.embulk.config.ConfigSource;
 import org.embulk.filter.calc.CalcFilterPlugin.PluginTask;
@@ -9,17 +8,20 @@ import org.embulk.spi.ExecInternal;
 import org.embulk.spi.Page;
 import org.embulk.spi.PageBuilder;
 import org.embulk.spi.PageReader;
-import org.embulk.spi.PageTestUtils;
 import org.embulk.spi.Schema;
-import org.embulk.spi.TestPageBuilderReader;
 import org.embulk.spi.time.Timestamp;
 import org.embulk.spi.util.Pages;
+import org.embulk.test.EmbulkTestRuntime;
+import org.embulk.test.PageTestUtils;
+import org.embulk.test.TestPageBuilderReader;
 import org.embulk.util.config.ConfigMapper;
 import org.embulk.util.config.ConfigMapperFactory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.msgpack.value.ValueFactory;
+
+import java.util.List;
 
 import static org.embulk.spi.type.Types.BOOLEAN;
 import static org.embulk.spi.type.Types.DOUBLE;
@@ -28,8 +30,6 @@ import static org.embulk.spi.type.Types.LONG;
 import static org.embulk.spi.type.Types.STRING;
 import static org.embulk.spi.type.Types.TIMESTAMP;
 import static org.junit.Assert.assertEquals;
-
-import java.util.List;
 
 
 public class TestCalcVisitorImpl

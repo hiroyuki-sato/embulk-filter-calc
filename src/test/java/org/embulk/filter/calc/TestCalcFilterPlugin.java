@@ -2,7 +2,7 @@ package org.embulk.filter.calc;
 
 import com.google.common.collect.Lists;
 
-import org.embulk.EmbulkTestRuntime;
+import org.embulk.test.EmbulkTestRuntime;
 import org.embulk.config.ConfigException;
 import org.embulk.config.ConfigLoader;
 import org.embulk.config.ConfigSource;
